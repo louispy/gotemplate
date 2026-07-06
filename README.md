@@ -13,12 +13,12 @@ go install golang.org/x/tools/cmd/gonew@latest
 
 One command via the wrapper (also renames the `gotemplate` slug in `Makefile`, `.env.example`, `docker-compose.yml`, and the README title, then re-inits git):
 ```
-./scripts/bootstrap.sh github.com/louispy/orders
+./scripts/bootstrap.sh github.com/<user>/<projectname>
 ```
 
 Or drive gonew directly and rename the few non-Go tokens yourself:
 ```
-gonew github.com/louispy/gotemplate github.com/louispy/orders
+gonew github.com/louispy/gotemplate github.com/<user>/<projectname>
 ```
 
 ## Stack
