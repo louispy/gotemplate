@@ -39,9 +39,11 @@ func NewContainer() *Container {
 	userService := services.NewUserService(services.UserServiceOpts{
 		UsersRepo: usersRepo,
 	})
+	// scaffold:construct
 
 	appAPI := api.NewAPI(api.Opts{
 		UserService: userService,
+		// scaffold:apiopts
 	})
 	appAPI.Register()
 

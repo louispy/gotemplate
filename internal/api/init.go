@@ -9,18 +9,21 @@ import (
 
 type API struct {
 	userService services.UserService
-	router      *mux.Router
+	// scaffold:services
+	router *mux.Router
 }
 
 type Opts struct {
 	UserService services.UserService
+	// scaffold:opts
 }
 
 func NewAPI(o Opts) *API {
 	r := mux.Router{}
 	return &API{
 		userService: o.UserService,
-		router:      &r,
+		// scaffold:assign
+		router: &r,
 	}
 }
 
@@ -36,4 +39,5 @@ func (a *API) Register() {
 	a.router.Methods(http.MethodGet).Path("/users/{id}").HandlerFunc(a.GetUser)
 	a.router.Methods(http.MethodPut).Path("/users/{id}").HandlerFunc(a.UpdateUser)
 	a.router.Methods(http.MethodDelete).Path("/users/{id}").HandlerFunc(a.DeleteUser)
+	// scaffold:routes
 }

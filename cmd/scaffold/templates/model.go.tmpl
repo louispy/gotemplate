@@ -1,0 +1,13 @@
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type {{.SingularPascal}} struct {
+{{- range .Fields}}
+	{{.GoName}} {{.GoType}} `db:"{{.Column}}"`
+{{- end}}
+}

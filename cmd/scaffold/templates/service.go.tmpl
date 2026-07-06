@@ -1,0 +1,159 @@
+package services
+
+import (
+	"context"
+	"log"
+	"time"
+
+	"github.com/google/uuid"
+	"{{.Module}}/internal/custerr"
+	"{{.Module}}/internal/domain/models"
+	"{{.Module}}/internal/domain/repositories"
+)
+
+type {{.SingularPascal}}Output struct {
+{{- range .OutFields}}
+	{{.GoName}} {{.GoType}}
+{{- end}}
+}
+
+type List{{.PluralPascal}}Output struct {
+	{{.PluralPascal}} []{{.SingularPascal}}Output
+}
+
+type Create{{.SingularPascal}}Input struct {
+{{- range .UserFields}}
+	{{.GoName}} {{.GoType}}
+{{- end}}
+}
+
+type Get{{.SingularPascal}}Input struct {
+	Id uuid.UUID
+}
+
+type List{{.PluralPascal}}Input struct{}
+
+type Update{{.SingularPascal}}Input struct {
+	Id uuid.UUID
+{{- range .UserFields}}
+	{{.GoName}} {{.GoType}}
+{{- end}}
+}
+
+type Delete{{.SingularPascal}}Input struct {
+	Id uuid.UUID
+}
+
+type {{.SingularPascal}}Service interface {
+	Create(ctx context.Context, inp Create{{.SingularPascal}}Input) (*{{.SingularPascal}}Output, error)
+	Get(ctx context.Context, inp Get{{.SingularPascal}}Input) (*{{.SingularPascal}}Output, error)
+	List(ctx context.Context, inp List{{.PluralPascal}}Input) (*List{{.PluralPascal}}Output, error)
+	Update(ctx context.Context, inp Update{{.SingularPascal}}Input) (*{{.SingularPascal}}Output, error)
+	Delete(ctx context.Context, inp Delete{{.SingularPascal}}Input) error
+}
+
+type {{.SingularCamel}}Service struct {
+	{{.PluralCamel}}Repo repositories.{{.PluralPascal}}Repository
+}
+
+type {{.SingularPascal}}ServiceOpts struct {
+	{{.PluralPascal}}Repo repositories.{{.PluralPascal}}Repository
+}
+
+func New{{.SingularPascal}}Service(opts {{.SingularPascal}}ServiceOpts) {{.SingularPascal}}Service {
+	return &{{.SingularCamel}}Service{
+		{{.PluralCamel}}Repo: opts.{{.PluralPascal}}Repo,
+	}
+}
+
+func to{{.SingularPascal}}Output(m models.{{.SingularPascal}}) {{.SingularPascal}}Output {
+	return {{.SingularPascal}}Output{
+{{- range .OutFields}}
+		{{.GoName}}: {{.Expr}},
+{{- end}}
+	}
+}
+
+func (s {{.SingularCamel}}Service) Create(ctx context.Context, inp Create{{.SingularPascal}}Input) (*{{.SingularPascal}}Output, error) {
+	now := time.Now().UTC()
+	{{.Var}} := models.{{.SingularPascal}}{
+		Id: uuid.New(),
+{{- range .UserFields}}
+		{{.GoName}}: inp.{{.GoName}},
+{{- end}}
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	if _, err := s.{{.PluralCamel}}Repo.Create(ctx, {{.Var}}); err != nil {
+		if err != custerr.ErrDuplicate {
+			log.Printf("Error creating {{.SingularCamel}}: %v\n", err.Error())
+		}
+		return nil, err
+	}
+
+	out := to{{.SingularPascal}}Output({{.Var}})
+	return &out, nil
+}
+
+func (s {{.SingularCamel}}Service) Get(ctx context.Context, inp Get{{.SingularPascal}}Input) (*{{.SingularPascal}}Output, error) {
+	{{.Var}}, err := s.{{.PluralCamel}}Repo.GetById(ctx, inp.Id)
+	if err != nil {
+		if err != custerr.ErrDataNotFound {
+			log.Printf("Error retrieving {{.SingularCamel}}: %v\n", err.Error())
+		}
+		return nil, err
+	}
+
+	out := to{{.SingularPascal}}Output(*{{.Var}})
+	return &out, nil
+}
+
+func (s {{.SingularCamel}}Service) List(ctx context.Context, inp List{{.PluralPascal}}Input) (*List{{.PluralPascal}}Output, error) {
+	{{.PluralCamel}}, err := s.{{.PluralCamel}}Repo.List(ctx)
+	if err != nil {
+		log.Printf("Error listing {{.PluralCamel}}: %v\n", err.Error())
+		return nil, err
+	}
+
+	out := make([]{{.SingularPascal}}Output, 0, len({{.PluralCamel}}))
+	for _, {{.Var}} := range {{.PluralCamel}} {
+		out = append(out, to{{.SingularPascal}}Output({{.Var}}))
+	}
+	return &List{{.PluralPascal}}Output{ {{.PluralPascal}}: out}, nil
+}
+
+func (s {{.SingularCamel}}Service) Update(ctx context.Context, inp Update{{.SingularPascal}}Input) (*{{.SingularPascal}}Output, error) {
+	existing, err := s.{{.PluralCamel}}Repo.GetById(ctx, inp.Id)
+	if err != nil {
+		if err != custerr.ErrDataNotFound {
+			log.Printf("Error retrieving {{.SingularCamel}}: %v\n", err.Error())
+		}
+		return nil, err
+	}
+
+{{- range .UserFields}}
+	existing.{{.GoName}} = inp.{{.GoName}}
+{{- end}}
+	existing.UpdatedAt = time.Now().UTC()
+
+	if err := s.{{.PluralCamel}}Repo.Update(ctx, *existing); err != nil {
+		if err != custerr.ErrDataNotFound && err != custerr.ErrDuplicate {
+			log.Printf("Error updating {{.SingularCamel}}: %v\n", err.Error())
+		}
+		return nil, err
+	}
+
+	out := to{{.SingularPascal}}Output(*existing)
+	return &out, nil
+}
+
+func (s {{.SingularCamel}}Service) Delete(ctx context.Context, inp Delete{{.SingularPascal}}Input) error {
+	if err := s.{{.PluralCamel}}Repo.Delete(ctx, inp.Id); err != nil {
+		if err != custerr.ErrDataNotFound {
+			log.Printf("Error deleting {{.SingularCamel}}: %v\n", err.Error())
+		}
+		return err
+	}
+	return nil
+}

@@ -1,0 +1,163 @@
+package repositories
+
+import (
+	"context"
+	"database/sql"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"{{.Module}}/internal/custerr"
+	"{{.Module}}/internal/domain/models"
+	"{{.Module}}/internal/utils"
+)
+
+type {{.PluralPascal}}Repository interface {
+	Create(ctx context.Context, {{.Var}} models.{{.SingularPascal}}) (uuid.UUID, error)
+	GetById(ctx context.Context, id uuid.UUID) (*models.{{.SingularPascal}}, error)
+	List(ctx context.Context) ([]models.{{.SingularPascal}}, error)
+	Update(ctx context.Context, {{.Var}} models.{{.SingularPascal}}) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type default{{.PluralPascal}}Repository struct {
+	db *sqlx.DB
+}
+
+type {{.PluralPascal}}RepoOpts struct {
+	DB *sqlx.DB
+}
+
+func New{{.PluralPascal}}Repository(opts {{.PluralPascal}}RepoOpts) {{.PluralPascal}}Repository {
+	return &default{{.PluralPascal}}Repository{
+		db: opts.DB,
+	}
+}
+
+const insert{{.SingularPascal}}Query = `
+	INSERT INTO
+		{{.Table}} ({{.InsertColumns}})
+	VALUES
+		({{.InsertPlaceholders}})
+`
+
+func (r default{{.PluralPascal}}Repository) Create(ctx context.Context, {{.Var}} models.{{.SingularPascal}}) (uuid.UUID, error) {
+	if {{.Var}}.Id == uuid.Nil {
+		{{.Var}}.Id = uuid.New()
+	}
+	args := []any{ {{.InsertArgs}} }
+
+	var err error
+	if tx := utils.SqlxTxFromCtx(ctx); tx != nil {
+		_, err = tx.ExecContext(ctx, insert{{.SingularPascal}}Query, args...)
+	} else {
+		_, err = r.db.ExecContext(ctx, insert{{.SingularPascal}}Query, args...)
+	}
+
+	return {{.Var}}.Id, mapError(err)
+}
+
+const get{{.SingularPascal}}Query = `
+	SELECT {{.SelectColumns}}
+	FROM {{.Table}}
+	WHERE id = $1
+	LIMIT 1
+`
+
+func (r default{{.PluralPascal}}Repository) GetById(ctx context.Context, id uuid.UUID) (*models.{{.SingularPascal}}, error) {
+	{{.Var}} := models.{{.SingularPascal}}{}
+
+	var err error
+	if tx := utils.SqlxTxFromCtx(ctx); tx != nil {
+		err = tx.GetContext(ctx, &{{.Var}}, get{{.SingularPascal}}Query, id)
+	} else {
+		err = r.db.GetContext(ctx, &{{.Var}}, get{{.SingularPascal}}Query, id)
+	}
+
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return &{{.Var}}, nil
+}
+
+const list{{.PluralPascal}}Query = `
+	SELECT {{.SelectColumns}}
+	FROM {{.Table}}
+	ORDER BY created_at DESC
+`
+
+func (r default{{.PluralPascal}}Repository) List(ctx context.Context) ([]models.{{.SingularPascal}}, error) {
+	{{.PluralCamel}} := []models.{{.SingularPascal}}{}
+
+	var err error
+	if tx := utils.SqlxTxFromCtx(ctx); tx != nil {
+		err = tx.SelectContext(ctx, &{{.PluralCamel}}, list{{.PluralPascal}}Query)
+	} else {
+		err = r.db.SelectContext(ctx, &{{.PluralCamel}}, list{{.PluralPascal}}Query)
+	}
+
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return {{.PluralCamel}}, nil
+}
+
+const update{{.SingularPascal}}Query = `
+	UPDATE {{.Table}}
+	SET {{.UpdateSet}}
+	WHERE id = $1
+`
+
+func (r default{{.PluralPascal}}Repository) Update(ctx context.Context, {{.Var}} models.{{.SingularPascal}}) error {
+	args := []any{ {{.UpdateArgs}} }
+
+	var (
+		res sql.Result
+		err error
+	)
+	if tx := utils.SqlxTxFromCtx(ctx); tx != nil {
+		res, err = tx.ExecContext(ctx, update{{.SingularPascal}}Query, args...)
+	} else {
+		res, err = r.db.ExecContext(ctx, update{{.SingularPascal}}Query, args...)
+	}
+	if err != nil {
+		return mapError(err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return custerr.ErrDataNotFound
+	}
+	return nil
+}
+
+const delete{{.SingularPascal}}Query = `
+	DELETE FROM {{.Table}}
+	WHERE id = $1
+`
+
+func (r default{{.PluralPascal}}Repository) Delete(ctx context.Context, id uuid.UUID) error {
+	var (
+		res sql.Result
+		err error
+	)
+	if tx := utils.SqlxTxFromCtx(ctx); tx != nil {
+		res, err = tx.ExecContext(ctx, delete{{.SingularPascal}}Query, id)
+	} else {
+		res, err = r.db.ExecContext(ctx, delete{{.SingularPascal}}Query, id)
+	}
+	if err != nil {
+		return mapError(err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return custerr.ErrDataNotFound
+	}
+	return nil
+}

@@ -11,8 +11,6 @@ import (
 	"github.com/louispy/gotemplate/internal/domain/repositories"
 )
 
-const timeFormat = "2006-01-02 15:04:05 -0700"
-
 type userService struct {
 	usersRepo repositories.UsersRepository
 }

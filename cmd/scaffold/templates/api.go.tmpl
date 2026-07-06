@@ -1,0 +1,185 @@
+package api
+
+import (
+	"encoding/json"
+{{- if .NeedsValidation}}
+	"errors"
+{{- end}}
+	"net/http"
+{{- if .NeedsValidation}}
+	"strings"
+{{- end}}
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"{{.Module}}/internal/services"
+)
+
+type {{.SingularPascal}}Response struct {
+{{- range .OutFields}}
+	{{.GoName}} {{.GoType}} `json:"{{.JSONName}}"`
+{{- end}}
+}
+
+type List{{.PluralPascal}}Response struct {
+	{{.PluralPascal}} []{{.SingularPascal}}Response `json:"{{.PluralCamel}}"`
+}
+
+type Create{{.SingularPascal}}Request struct {
+{{- range .UserFields}}
+	{{.GoName}} {{.GoType}} `json:"{{.JSONName}}"`
+{{- end}}
+}
+
+func (r Create{{.SingularPascal}}Request) Validate() error {
+	return validate{{.SingularPascal}}(
+{{- range .UserFields}}
+		r.{{.GoName}},
+{{- end}}
+	)
+}
+
+type Update{{.SingularPascal}}Request struct {
+{{- range .UserFields}}
+	{{.GoName}} {{.GoType}} `json:"{{.JSONName}}"`
+{{- end}}
+}
+
+func (r Update{{.SingularPascal}}Request) Validate() error {
+	return validate{{.SingularPascal}}(
+{{- range .UserFields}}
+		r.{{.GoName}},
+{{- end}}
+	)
+}
+
+func validate{{.SingularPascal}}(
+{{- range .UserFields}}
+	{{.ArgName}} {{.GoType}},
+{{- end}}
+) error {
+{{- range .UserFields}}
+{{- if .Required}}
+	if strings.TrimSpace({{.ArgName}}) == "" {
+		return errors.New("{{.JSONName}} is required")
+	}
+{{- end}}
+{{- end}}
+	return nil
+}
+
+func (a API) Create{{.SingularPascal}}(rw http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(rw, r.Body, 1<<20)
+	req := Create{{.SingularPascal}}Request{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+	if err := req.Validate(); err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+
+	output, err := a.{{.SingularCamel}}Service.Create(r.Context(), services.Create{{.SingularPascal}}Input{
+{{- range .UserFields}}
+		{{.GoName}}: req.{{.GoName}},
+{{- end}}
+	})
+	if err != nil {
+		WriteJSONResponse(rw, statusForError(err), nil, nil, err)
+		return
+	}
+
+	message := "Successfully created {{.SingularCamel}}"
+	WriteJSONResponse(rw, http.StatusCreated, to{{.SingularPascal}}Response(*output), &message, nil)
+}
+
+func (a API) List{{.PluralPascal}}(rw http.ResponseWriter, r *http.Request) {
+	output, err := a.{{.SingularCamel}}Service.List(r.Context(), services.List{{.PluralPascal}}Input{})
+	if err != nil {
+		WriteJSONResponse(rw, statusForError(err), nil, nil, err)
+		return
+	}
+
+	{{.PluralCamel}} := make([]{{.SingularPascal}}Response, 0, len(output.{{.PluralPascal}}))
+	for _, item := range output.{{.PluralPascal}} {
+		{{.PluralCamel}} = append({{.PluralCamel}}, to{{.SingularPascal}}Response(item))
+	}
+
+	message := "Successfully listed {{.PluralCamel}}"
+	WriteJSONResponse(rw, http.StatusOK, List{{.PluralPascal}}Response{ {{.PluralPascal}}: {{.PluralCamel}}}, &message, nil)
+}
+
+func (a API) Get{{.SingularPascal}}(rw http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+
+	output, err := a.{{.SingularCamel}}Service.Get(r.Context(), services.Get{{.SingularPascal}}Input{Id: id})
+	if err != nil {
+		WriteJSONResponse(rw, statusForError(err), nil, nil, err)
+		return
+	}
+
+	message := "Successfully retrieved {{.SingularCamel}}"
+	WriteJSONResponse(rw, http.StatusOK, to{{.SingularPascal}}Response(*output), &message, nil)
+}
+
+func (a API) Update{{.SingularPascal}}(rw http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+
+	r.Body = http.MaxBytesReader(rw, r.Body, 1<<20)
+	req := Update{{.SingularPascal}}Request{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+	if err := req.Validate(); err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+
+	output, err := a.{{.SingularCamel}}Service.Update(r.Context(), services.Update{{.SingularPascal}}Input{
+		Id: id,
+{{- range .UserFields}}
+		{{.GoName}}: req.{{.GoName}},
+{{- end}}
+	})
+	if err != nil {
+		WriteJSONResponse(rw, statusForError(err), nil, nil, err)
+		return
+	}
+
+	message := "Successfully updated {{.SingularCamel}}"
+	WriteJSONResponse(rw, http.StatusOK, to{{.SingularPascal}}Response(*output), &message, nil)
+}
+
+func (a API) Delete{{.SingularPascal}}(rw http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		WriteJSONResponse(rw, http.StatusBadRequest, nil, nil, err)
+		return
+	}
+
+	if err := a.{{.SingularCamel}}Service.Delete(r.Context(), services.Delete{{.SingularPascal}}Input{Id: id}); err != nil {
+		WriteJSONResponse(rw, statusForError(err), nil, nil, err)
+		return
+	}
+
+	message := "Successfully deleted {{.SingularCamel}}"
+	WriteJSONResponse(rw, http.StatusOK, map[string]string{"id": id.String()}, &message, nil)
+}
+
+func to{{.SingularPascal}}Response(u services.{{.SingularPascal}}Output) {{.SingularPascal}}Response {
+	return {{.SingularPascal}}Response{
+{{- range .OutFields}}
+		{{.GoName}}: u.{{.GoName}},
+{{- end}}
+	}
+}

@@ -21,6 +21,45 @@ Or drive gonew directly and rename the few non-Go tokens yourself:
 gonew github.com/louispy/gotemplate github.com/<user>/<projectname>
 ```
 
+## Scaffolding a resource
+
+The users slice (model → repository → service → handlers) is the pattern every
+resource follows. `cmd/scaffold` generates that whole slice from a table's
+`CREATE TABLE`, so the SQL schema is the single source of truth.
+
+1. Write the schema in `sql/<table>.sql`. It must include `id uuid`,
+   `created_at`, and `updated_at` columns; every other column becomes an
+   editable field. For example, `sql/products.sql`:
+   ```sql
+   CREATE TABLE IF NOT EXISTS products (
+       id uuid NOT NULL PRIMARY KEY,
+       name TEXT NOT NULL,
+       sku TEXT NOT NULL,
+       price NUMERIC(12,2) NOT NULL,
+       created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+       updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+   );
+   ```
+2. Generate and wire the slice:
+   ```
+   go run ./cmd/scaffold products
+   ```
+   This writes `internal/{domain/models,domain/repositories,services,api}/products.go`
+   and registers the routes + DI wiring (via the `// scaffold:*` marker comments
+   in `internal/api/init.go` and `cmd/httpserver/container.go`).
+3. Build and migrate:
+   ```
+   go build ./...
+   go run ./cmd/migrate
+   ```
+
+The generated code is plain Go you own and edit freely — the tool has no runtime
+role. SQL types map to Go (`uuid`→`uuid.UUID`, `text`→`string`,
+`numeric`→`float64`, `boolean`→`bool`, `timestamp`→`time.Time`); `NOT NULL` text
+fields get a presence check. **Postgres-specific** (placeholders, type names, and
+the `23505` duplicate mapping): a different database means changing the templates
+in `cmd/scaffold/templates/` and the shared repository layer.
+
 ## Stack
 - Go 1.26+
 - PostgreSQL 14+

@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"github.com/louispy/gotemplate/internal/custerr"
 	"github.com/louispy/gotemplate/internal/domain/models"
 	"github.com/louispy/gotemplate/internal/utils"
@@ -24,19 +23,6 @@ func NewUsersRepository(opts UsersRepoOpts) UsersRepository {
 	return &defaultUsersRepository{
 		db: opts.DB,
 	}
-}
-
-func mapError(err error) error {
-	if err == nil {
-		return nil
-	}
-	if err == sql.ErrNoRows {
-		return custerr.ErrDataNotFound
-	}
-	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-		return custerr.ErrDuplicate
-	}
-	return err
 }
 
 const insertUserQuery = `
