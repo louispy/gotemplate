@@ -1,4 +1,4 @@
-APP_NAME=template
+APP_NAME=gotemplate
 
 run-http:
 	@echo "Running HTTP Server..."

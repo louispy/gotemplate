@@ -2,6 +2,25 @@
 
 A slim Go HTTP service template: layered architecture, PostgreSQL, and a users CRUD as a worked example.
 
+## Bootstrapping a new project
+
+This template is consumed with [`gonew`](https://pkg.go.dev/golang.org/x/tools/cmd/gonew), which copies the module and rewrites the module path and every import.
+
+Prerequisites: this repo must be reachable as a module (published to a public remote, or present in your module cache), and gonew installed:
+```
+go install golang.org/x/tools/cmd/gonew@latest
+```
+
+One command via the wrapper (also renames the `gotemplate` slug in `Makefile`, `.env.example`, `docker-compose.yml`, and the README title, then re-inits git):
+```
+./scripts/bootstrap.sh github.com/louispy/orders
+```
+
+Or drive gonew directly and rename the few non-Go tokens yourself:
+```
+gonew github.com/louispy/gotemplate github.com/louispy/orders
+```
+
 ## Stack
 - Go 1.26+
 - PostgreSQL 14+
