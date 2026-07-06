@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/caarlos0/env/v11"
-	"github.com/louispy/template/internal/api"
-	"github.com/louispy/template/internal/database"
-	"github.com/louispy/template/internal/domain/repositories"
-	"github.com/louispy/template/internal/services"
+	"github.com/louispy/gotemplate/internal/api"
+	"github.com/louispy/gotemplate/internal/database"
+	"github.com/louispy/gotemplate/internal/domain/repositories"
+	"github.com/louispy/gotemplate/internal/services"
 )
 
 type Container struct {

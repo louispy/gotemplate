@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/louispy/template/internal/domain/models"
+	"github.com/louispy/gotemplate/internal/domain/models"
 )
 
 type UsersRepository interface {

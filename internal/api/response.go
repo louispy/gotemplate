@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/louispy/template/internal/custerr"
+	"github.com/louispy/gotemplate/internal/custerr"
 )
 
 type jsonResponse struct {

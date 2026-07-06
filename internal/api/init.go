@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/louispy/template/internal/services"
+	"github.com/louispy/gotemplate/internal/services"
 )
 
 type API struct {

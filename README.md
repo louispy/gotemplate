@@ -1,4 +1,4 @@
-# Template
+# gotemplate
 
 A slim Go HTTP service template: layered architecture, PostgreSQL, and a users CRUD as a worked example.
 

@@ -1,4 +1,4 @@
-module github.com/louispy/template
+module github.com/louispy/gotemplate
 
 go 1.26
 

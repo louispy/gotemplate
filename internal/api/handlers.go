@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/louispy/template/internal/services"
+	"github.com/louispy/gotemplate/internal/services"
 )
 
 func (a API) Health(rw http.ResponseWriter, r *http.Request) {

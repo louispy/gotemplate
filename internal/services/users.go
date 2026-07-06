@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/louispy/template/internal/custerr"
-	"github.com/louispy/template/internal/domain/models"
-	"github.com/louispy/template/internal/domain/repositories"
+	"github.com/louispy/gotemplate/internal/custerr"
+	"github.com/louispy/gotemplate/internal/domain/models"
+	"github.com/louispy/gotemplate/internal/domain/repositories"
 )
 
 const timeFormat = "2006-01-02 15:04:05 -0700"

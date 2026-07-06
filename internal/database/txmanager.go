@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/louispy/template/internal/constants"
-	"github.com/louispy/template/internal/utils"
+	"github.com/louispy/gotemplate/internal/constants"
+	"github.com/louispy/gotemplate/internal/utils"
 )
 
 type TxManager interface {

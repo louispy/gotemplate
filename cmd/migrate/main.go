@@ -9,7 +9,7 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
-	"github.com/louispy/template/internal/database"
+	"github.com/louispy/gotemplate/internal/database"
 )
 
 type Config struct {

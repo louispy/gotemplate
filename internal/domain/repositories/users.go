@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/louispy/template/internal/custerr"
-	"github.com/louispy/template/internal/domain/models"
-	"github.com/louispy/template/internal/utils"
+	"github.com/louispy/gotemplate/internal/custerr"
+	"github.com/louispy/gotemplate/internal/domain/models"
+	"github.com/louispy/gotemplate/internal/utils"
 )
 
 type defaultUsersRepository struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/louispy/template/internal/constants"
+	"github.com/louispy/gotemplate/internal/constants"
 )
 
 func SqlxTxFromCtx(ctx context.Context) *sqlx.Tx {
