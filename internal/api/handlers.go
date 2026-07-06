@@ -9,13 +9,8 @@ import (
 	"github.com/louispy/template/internal/services"
 )
 
-func (a API) Hello(rw http.ResponseWriter, r *http.Request) {
-	rw.Write([]byte("Hello World"))
-}
-
 func (a API) Health(rw http.ResponseWriter, r *http.Request) {
-	status := "ok"
-	WriteJSONResponse(rw, http.StatusOK, map[string]string{"status": status}, nil, nil)
+	WriteJSONResponse(rw, http.StatusOK, map[string]string{"status": "ok"}, nil, nil)
 }
 
 func (a API) CreateUser(rw http.ResponseWriter, r *http.Request) {

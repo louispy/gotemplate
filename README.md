@@ -3,7 +3,7 @@
 A slim Go HTTP service template: layered architecture, PostgreSQL, and a users CRUD as a worked example.
 
 ## Stack
-- Go 1.22+
+- Go 1.26+
 - PostgreSQL 14+
 - `gorilla/mux`, `jmoiron/sqlx`, `lib/pq`
 
@@ -50,7 +50,6 @@ sql/            - table schemas
 
 | Method | Path          | Description        |
 | ------ | ------------- | ------------------ |
-| GET    | `/hello`      | Plain-text hello   |
 | GET    | `/health`     | Health check       |
 | POST   | `/users`      | Create a user      |
 | GET    | `/users`      | List users         |

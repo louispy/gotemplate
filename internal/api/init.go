@@ -29,7 +29,6 @@ func (a *API) GetRouter() *mux.Router {
 }
 
 func (a *API) Register() {
-	a.router.Methods(http.MethodGet).Path("/hello").HandlerFunc(a.Hello)
 	a.router.Methods(http.MethodGet).Path("/health").HandlerFunc(a.Health)
 
 	a.router.Methods(http.MethodPost).Path("/users").HandlerFunc(a.CreateUser)
